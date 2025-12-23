@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPS Page</title>
+</head>
+<body>
+    <h1>Network and Device Information</h1>
+    <div id="info-container"></div>
+    <button onclick="resetList()">Reset List</button>
+
+    <h2>Add New Device Info</h2>
+    <form id="device-info-form">
+        <label for="deviceName">Device Name:</label>
+        <input type="text" id="deviceName" name="deviceName" required><br>
+        <label for="location">Location:</label>
+        <input type="text" id="location" name="location" required><br>
+        <button type="submit">Add Device Info</button>
+    </form>
+
+    <script>
+        async function fetchDeviceInfo() {
+            try {
+                const response = await fetch('/api/device-info');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                console.log('Fetched device info:', data); // Log the fetched data
+                displayInfo(data);
+            } catch (error) {
+                console.error('Error fetching device info:', error);
+            }
+        }
+
+        function displayInfo(infoList) {
+            const container = document.getElementById('info-container');
+            container.innerHTML = ''; // Clear previous content
+
+            infoList.forEach(info => {
+                const infoDiv = document.createElement('div');
+                infoDiv.innerHTML = `
+                    <p><strong>IPv4:</strong> ${info.ipv4}</p>
+                    <p><strong>IPv6:</strong> ${info.ipv6}</p>
+                    <p><strong>Subnet Mask:</strong> ${info.subnetMask}</p>
+                    <p><strong>Default Gateway:</strong> ${info.defaultGateway}</p>
+                    <p><strong>Device Name:</strong> ${info.deviceName}</p>
+                    <p><strong>Location:</strong> ${info.location}</p>
+                    <hr>
+                `;
+                container.appendChild(infoDiv);
+            });
+        }
+
+        async function resetList() {
+            try {
+                await fetch('/api/archive', { method: 'POST' });
+                fetchDeviceInfo(); // Refresh the displayed info
+            } catch (error) {
+                console.error('Error resetting list:', error);
+            }
+        }
+
+        document.getElementById('device-info-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const deviceName = document.getElementById('deviceName').value;
+            const location = document.getElementById('location').value;
+
+            try {
+                const response = await fetch('/api/device-info', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ deviceName, location })
+                });
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                fetchDeviceInfo(); // Refresh the displayed info
+            } catch (error) {
+                console.error('Error adding device info:', error);
+            }
+        });
+
+        // Initial fetch when the page loads
+        fetchDeviceInfo();
+    </script>
+</body>
+</html>
