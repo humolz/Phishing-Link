@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', (event) => {
-  fetch('/api/server/ips-page')
+  fetch('/.netlify/functions/api/server/ips-page')
     .then(response => response.text())
     .then(data => {
       document.body.innerHTML = data;
